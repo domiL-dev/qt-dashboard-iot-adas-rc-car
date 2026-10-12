@@ -12,6 +12,7 @@
 #include <QKeyEvent>
 #include <QPlainTextEdit>
 #include <QDateTime>
+#include <qpushbutton.h>
 
 class Dashboard : public QMainWindow
 {
@@ -20,17 +21,16 @@ class Dashboard : public QMainWindow
 private:
     QMqttClient *m_client;
     QLabel *m_statusLabel;
-    QLabel *m_dataLabel;
     QPlainTextEdit *m_logTextEdit;
-    QPushButton *m_controlButton;
     QPushButton *m_controlButtonAccelerate;
     QPushButton *m_controlButtonReverse;
     QPushButton *m_controlButtonLeft;
     QPushButton *m_controlButtonRight;
-    bool m_deviceState = false;
 
     //left sidebar
     QPushButton *m_controlDebugInfoButton;
+    QPushButton *m_resetDebugLogText;
+    bool m_debugInfoState = false;
 
     enum VehicleControlCommand {
         ACCELERATE,
@@ -101,7 +101,8 @@ public:
 
 private slots:
     void updateStatus();
-    void toggleDevice();
+    void activateDebugLog();
+    void resetDebugLog();
     void logDebug(const QString &topic, const QString &message);
 
 

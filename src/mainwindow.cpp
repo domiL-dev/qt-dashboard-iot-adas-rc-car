@@ -24,9 +24,9 @@ Dashboard::Dashboard(QWidget *parent) : QMainWindow(parent){
 
     // Grid Elements
     m_logTextEdit = new QPlainTextEdit("Debug Log:");
+    m_resetDebugLogText = new QPushButton("clear - Debug Log", this);
 
     m_statusLabel = new QLabel("Status: Getrennt", this);
-    m_dataLabel = new QLabel("Sensorwert: --", this);        m_controlButton = new QPushButton("Gerät einschalten", this);
     m_controlButtonAccelerate = new QPushButton("Accelerate", this);
     m_controlButtonReverse = new QPushButton("Reverse", this);
     m_controlButtonLeft = new QPushButton("Left", this);
@@ -34,10 +34,9 @@ Dashboard::Dashboard(QWidget *parent) : QMainWindow(parent){
 
     // Organizing Grid Elements
     dashboardGrid->addWidget(m_logTextEdit,1,5, 10, 3);
+    dashboardGrid->addWidget(m_resetDebugLogText, 11, 5, 1, 3);
 
     dashboardGrid->addWidget(m_statusLabel, 0, 1);
-    dashboardGrid->addWidget(m_dataLabel, 0,2);
-    dashboardGrid->addWidget(m_controlButton, 0, 3);
     dashboardGrid->addWidget(m_controlButtonAccelerate, 3, 2);
     dashboardGrid->addWidget(m_controlButtonReverse, 4, 2);
     dashboardGrid->addWidget(m_controlButtonLeft, 4, 1);
@@ -54,8 +53,9 @@ Dashboard::Dashboard(QWidget *parent) : QMainWindow(parent){
 
         // 3. Signal-Slot-Verbindungen (Logik)
         connect(m_client, &QMqttClient::stateChanged, this, &Dashboard::updateStatus);
-        connect(m_controlButton, &QPushButton::clicked, this, &Dashboard::toggleDevice);
-        
+        connect(m_controlDebugInfoButton, &QPushButton::clicked, this, &Dashboard::activateDebugLog);
+        connect(m_resetDebugLogText, &QPushButton::clicked, this, &Dashboard::resetDebugLog);
+
         connect(m_controlButtonAccelerate, &QPushButton::pressed, this,[this]()  {Dashboard::controlVehicle(VehicleControlCommand::ACCELERATE);});
         connect(m_controlButtonAccelerate, &QPushButton::released, this,[this]()  {Dashboard::controlVehicle(VehicleControlCommand::STOP_DRIVE);});
         connect(m_controlButtonReverse, &QPushButton::pressed, this, [this](){Dashboard::controlVehicle(VehicleControlCommand::REVERSE);});
@@ -76,10 +76,7 @@ Dashboard::Dashboard(QWidget *parent) : QMainWindow(parent){
             QString topicStr = topic.name();
             QString msgStr = QString::fromUtf8(message);
 
-            if (topicStr == "mein/dashboard/sensor") {
-                m_dataLabel->setText(QString("Sensorwert: %1").arg(msgStr));
-            } 
-            else if (topicStr == "/Pico2W/Debug") {
+            if (topicStr == "/Pico2W/Debug") {
             // Hier befüllen Sie direkt Ihr neues Terminal aus dem letzten Schritt!
                 logDebug(topicStr, msgStr);
             
@@ -111,15 +108,19 @@ Dashboard::Dashboard(QWidget *parent) : QMainWindow(parent){
         }
     }
 
-    void Dashboard::toggleDevice() {
+    void Dashboard::activateDebugLog(){
         if (m_client->state() != QMqttClient::Connected) return;
 
-        m_deviceState = !m_deviceState;
-        QString payload = m_deviceState ? "ON" : "OFF";
+        m_debugInfoState = !m_debugInfoState;
+        QString payload = m_debugInfoState ? "ON" : "OFF";
         
         // Befehl über MQTT senden
-        m_client->publish(QString("mein/dashboard/control"), payload.toUtf8());
-        m_controlButton->setText(m_deviceState ? "Gerät ausschalten" : "Gerät einschalten");
+        m_client->publish(QString("activate/Debug"), payload.toUtf8());
+        m_controlDebugInfoButton->setText(m_debugInfoState ? "Debug Info (on)" : "Debug Info (off)");
+    }
+
+    void Dashboard::resetDebugLog(){
+        m_logTextEdit->setPlainText("Debug Log:");
     }
 
     void Dashboard::logDebug(const QString &topic, const QString &message) {
