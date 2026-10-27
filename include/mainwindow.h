@@ -8,11 +8,17 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QPushButton>
+#include <QRadioButton>
+#include <QButtonGroup>
+#include <QGroupBox>
 #include <QtMqtt/QMqttClient>
 #include <QKeyEvent>
 #include <QPlainTextEdit>
 #include <QDateTime>
+#include <qlabel.h>
 #include <qpushbutton.h>
+#include <qradiobutton.h>
+#include <qsizepolicy.h>
 
 class Dashboard : public QMainWindow
 {
@@ -20,26 +26,60 @@ class Dashboard : public QMainWindow
 
 private:
     QMqttClient *m_client;
+
     QLabel *m_statusLabel;
+    QLabel *m_statusPicoLabel;
+    QLabel *m_statusDriveDirectionLabel;
+    QLabel *m_valueSteeringAngelLabel;
+
     QPlainTextEdit *m_logTextEdit;
+
     QPushButton *m_controlButtonAccelerate;
     QPushButton *m_controlButtonReverse;
     QPushButton *m_controlButtonLeft;
     QPushButton *m_controlButtonRight;
+    QPushButton *m_controlButtonStop;
+    QPushButton *m_controlButtonDriveDirectionForward;
+    QPushButton *m_controlButtonDriveDirectionReverse;
+    QPushButton *m_controlButtonGetGpio;
+
+    //set PWM Level
+
+
+    QRadioButton *m_radioButton25;
+    QRadioButton *m_radioButton50;
+    QRadioButton *m_radioButton75;
+    QRadioButton *m_radioButton100;
+
 
     //left sidebar
-    QPushButton *m_controlDebugInfoButton;
+    QPushButton *m_enableDebugLogButton;
     QPushButton *m_resetDebugLogText;
-    bool m_debugInfoState = false;
+    bool m_enableDebugLogState = false;
+
+    QPushButton *m_enableGpioDebugLogButton;
+    bool m_enableGpioDebugLogState = false;
 
     enum VehicleControlCommand {
         ACCELERATE,
+        STOP_ACCELERATE,
         REVERSE,
+        STOP_REVERSE,
         LEFT,
+        STOP_LEFT,
         RIGHT,
-        STOP_DRIVE,
-        STOP_STEERING
+        STOP_RIGHT,
+        BREAK,
+        STOP_BREAK,
+        setFORWARD,
+        setREVERSE,
+        setPWM_LEVEL_25,
+        setPWM_LEVEL_50,
+        setPWM_LEVEL_75,
+        setPWM_LEVEL_100,
+        getGPIO
     };
+
 
     void controlVehicle(enum VehicleControlCommand command);
 
@@ -101,7 +141,11 @@ public:
 
 private slots:
     void updateStatus();
-    void activateDebugLog();
+    void updatePicoStatus(const QString &message);
+    void updateSteeringAngle(const QString &message);
+    void updateDriveDirectionStatus(const QString &message);
+    void enableDebugLog();
+    void enableGpioDebugLog();
     void resetDebugLog();
     void logDebug(const QString &topic, const QString &message);
 
